@@ -1,0 +1,9 @@
+c:\users\duy\documents\visual studio 2017\Projects\AWHandmade1.1\AWHandmade1.1\bin\Debug\AWHandmade1.1.exe.config
+c:\users\duy\documents\visual studio 2017\Projects\AWHandmade1.1\AWHandmade1.1\bin\Debug\AWHandmade1.1.exe
+c:\users\duy\documents\visual studio 2017\Projects\AWHandmade1.1\AWHandmade1.1\bin\Debug\AWHandmade1.1.pdb
+c:\users\duy\documents\visual studio 2017\Projects\AWHandmade1.1\AWHandmade1.1\bin\Debug\Microsoft.AnalysisServices.Core.DLL
+c:\users\duy\documents\visual studio 2017\Projects\AWHandmade1.1\AWHandmade1.1\bin\Debug\Microsoft.AnalysisServices.Tabular.DLL
+c:\users\duy\documents\visual studio 2017\Projects\AWHandmade1.1\AWHandmade1.1\bin\Debug\Microsoft.AnalysisServices.Tabular.Json.DLL
+c:\users\duy\documents\visual studio 2017\Projects\AWHandmade1.1\AWHandmade1.1\obj\Debug\AWHandmade1.1.csprojResolveAssemblyReference.cache
+c:\users\duy\documents\visual studio 2017\Projects\AWHandmade1.1\AWHandmade1.1\obj\Debug\AWHandmade1.1.exe
+c:\users\duy\documents\visual studio 2017\Projects\AWHandmade1.1\AWHandmade1.1\obj\Debug\AWHandmade1.1.pdb

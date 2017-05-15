@@ -13,7 +13,7 @@ namespace AWHandmade1._1
 
     class Program
     {
-        public class Table
+        public class Table 
         {
             public string TableSchema { get; set; }
             public string TableName { get; set; }
@@ -42,61 +42,39 @@ namespace AWHandmade1._1
 
         public static string SelectedDatabase(string svr)
         {
-            string connString = "DataSource=.\\MSSQLAS";
-            using (Server server = new Server())
+            OleDbConnection myAccessConn = null;
+            string dbSelection = "";
+            string strConn = "Provider=SQLOLEDB;Data Source=" + svr + ";Integrated Security=SSPI;Persist Security Info=false";
+
+
+            using (myAccessConn = new OleDbConnection(strConn))
             {
-                server.Connect(connString);
+                myAccessConn.Open();
 
-                string newDB = server.Databases.GetNewName("AW New Handmade");
-                var db = new Database()
+                var dt = myAccessConn.GetOleDbSchemaTable(OleDbSchemaGuid.Catalogs, null);
+                // Xuất ra list database 
+                for (int i = 0; i < dt.Rows.Count; i++)
                 {
-                    Name = newDB,
-                    ID = newDB,
-                    CompatibilityLevel = 1200,
-                    StorageEngineUsed = Microsoft.AnalysisServices.StorageEngineUsed.TabularMetadata
-                };
-
-                db.Model = new Model()
-                {
-                    Name = "AW New Handmade v1.0",
-                    Description = "My new AW Handmade"
-                };
-                DataSet myDataSet = new DataSet();
-                OleDbConnection myAccessConn = null;
-                string dbSelection = "";
-                //Lưu các bảng được chọn vào 1 list
-
-                string strConn = "Provider=SQLOLEDB;Data Source=" + svr + ";Integrated Security=SSPI;Persist Security Info=false";
-
-
-                using (myAccessConn = new OleDbConnection(strConn))
-                {
-                    myAccessConn.Open();
-
-                    var dt = myAccessConn.GetOleDbSchemaTable(OleDbSchemaGuid.Catalogs, null);
-                    // Xuất ra list database 
-                    for (int i = 0; i < dt.Rows.Count; i++)
-                    {
-                        Console.WriteLine("{0}. " + dt.Rows[i].ItemArray[0].ToString(), i + 1);
-                    }
-                    Console.Write("Enter Selection: ");
-                    int selector = int.Parse(Console.ReadLine());
-                    for (int i = 1; i < dt.Rows.Count + 1; i++)
-                    {
-                        if (selector == i) dbSelection = dt.Rows[i - 1]["CATALOG_Name"].ToString();
-                    }
-                    //Console.WriteLine("Your selection is:{0} ", dbSelection);
-                    myAccessConn.Close();
+                    Console.WriteLine("{0}. " + dt.Rows[i].ItemArray[0].ToString(), i + 1);
                 }
-                return dbSelection;
+                Console.Write("Enter Selection: ");
+                int selector = int.Parse(Console.ReadLine());
+                for (int i = 1; i < dt.Rows.Count + 1; i++)
+                {
+                    if (selector == i) dbSelection = dt.Rows[i - 1]["CATALOG_Name"].ToString();
+                }
+                //Console.WriteLine("Your selection is:{0} ", dbSelection);
+                myAccessConn.Close();
             }
+            return dbSelection;
         }
+
 
         public static List<Table> SelectedTables(string svr, string db)
         {
             List<Table> tblSelection = new List<Table>();
             OleDbConnection myAccessConn = null;
-            string strConn1 = "Provider = SQLOLEDB; Data Source = " + svr + ";Initial Catalog=" + db+ "; Integrated Security = SSPI; Persist Security Info = false";
+            string strConn1 = "Provider = SQLOLEDB; Data Source = " + svr + ";Initial Catalog=" + db + "; Integrated Security = SSPI; Persist Security Info = false";
             using (myAccessConn = new OleDbConnection(strConn1))
             {
 
@@ -111,11 +89,11 @@ namespace AWHandmade1._1
                 List<int> tblSelect = new List<int>();
 
                 Array.ForEach(str.Split(",".ToCharArray()), s =>
-                {
-                    int currentInt;
-                    if (Int32.TryParse(s, out currentInt))
-                        tblSelect.Add(currentInt);
-                });
+                 {
+                     int currentInt;
+                     if (Int32.TryParse(s, out currentInt))
+                         tblSelect.Add(currentInt);
+                 });
                 for (int i = 0; i < tblSelect.Count; i++)
                 {
                     for (int j = 0; j < tbl.Rows.Count; j++)
@@ -128,18 +106,18 @@ namespace AWHandmade1._1
                                 TableSchema = tbl.Rows[j - 1]["TABLE_SCHEMA"].ToString()
                             };
                             tblSelection.Add(tb);
-                        }                       
+                        }
                     }
                 }
             }
             return tblSelection;
         }
 
-        public static List<Column> SelectedColumns (string svr,string db,Table table)
+        public static List<Microsoft.AnalysisServices.Tabular.DataColumn> SelectedColumns(string svr, string db, Table table)
         {
-            List<Column> colSelections = new List<Column>();
+            List<Microsoft.AnalysisServices.Tabular.DataColumn> colSelections = new List<Microsoft.AnalysisServices.Tabular.DataColumn>();
             OleDbConnection myAccessConn = null;
-            
+
             string strConn1 = "Provider = SQLOLEDB; Data Source = " + svr + ";Initial Catalog=" + db + "; Integrated Security = SSPI; Persist Security Info = false";
             using (myAccessConn = new OleDbConnection(strConn1))
             {
@@ -147,49 +125,60 @@ namespace AWHandmade1._1
                 var col = myAccessConn.GetOleDbSchemaTable(OleDbSchemaGuid.Columns, new[] { null, table.TableSchema, table.TableName, null });
                 foreach (DataRow dr in col.Rows)
                 {
-                    var column = new Column()
+                    var column = new Microsoft.AnalysisServices.Tabular.DataColumn()
                     {
-                        ColumnName = dr["COLUMN_NAME"].ToString(),
-                        DataType = (ColumnDataType)Convert.ToInt32(dr["DATA_TYPE"]),
-                        TableName = dr["TABLE_NAME"].ToString(),
-                        TableSchema = dr["TABLE_SCHEMA"].ToString()
-
+                        Name = dr["COLUMN_NAME"].ToString(),
+                        DataType = (Microsoft.AnalysisServices.Tabular.DataType)(ChangeDataType(Convert.ToInt32(dr["DATA_TYPE"]))),
                     };
+                    Console.WriteLine(dr["COLUMN_NAME"].ToString() + ": " + dr["DATA_TYPE"]);
+                    Console.WriteLine(column.DataType);
+                    
                     colSelections.Add(column);
                 }
-
-                
+                Console.ReadLine();
             }
             return colSelections;
         }
-        public SingleColumnRelationship rel(Column fromColumn, Column toColumn, string name)
+        public static int ChangeDataType(int n)
         {
-            Microsoft.AnalysisServices.Tabular.DataColumn fc = new Microsoft.AnalysisServices.Tabular.DataColumn()
+            int result = 0;
+            switch (n)
             {
-                Name = fromColumn.ColumnName,
-                DataType = (Microsoft.AnalysisServices.Tabular.DataType)fromColumn.DataType,
-                SourceColumn = fromColumn.ColumnName
-            };
-            Microsoft.AnalysisServices.Tabular.DataColumn tc = new Microsoft.AnalysisServices.Tabular.DataColumn()
-            {
-                Name = toColumn.ColumnName,
-                DataType = (Microsoft.AnalysisServices.Tabular.DataType)toColumn.DataType,
-                SourceColumn = toColumn.ColumnName
-            };
+                case 12: //variant
+                    result = 20;
+                    break;
+                //////case 13://Unknown
+                //    result = 19;
+                //    break;
+                case 128: case 205: case 204://Binary
+                    result =  17;
+                    break;
+                case 11://Boolean
+                    return 11;
+                    break;
+                case 14://Decimal
+                    result = 10;
+                    break;
+                case 133: case 134: case 135://DateTime
+                    result = 9;
+                    break;
+                case 5: case 131://Double
+                    result = 8;
+                    break;
+                case 2: case 3: case 16: case 17: case 18: case 19: case 20: case 21: //Int64
+                    result = 6;
+                    break;
+                case 129: case 130: case 200: case 201: case 202: case 203: case 72://String
+                    result = 2;
+                    break;
+                default: result = 1;break; //Automatic
 
-            SingleColumnRelationship SCR = new SingleColumnRelationship()
-            {
-                Name = name,
-                FromColumn = fc,
-                ToColumn = tc,
-                FromCardinality = RelationshipEndCardinality.Many,
-                ToCardinality = RelationshipEndCardinality.One
 
-            };
-            return SCR;
-            
+            }
+            return result;
         }
-        public static void createAnalysisServiceDatabase(string svr,string db)
+            
+        public static void CreateAnalysisServiceDatabase(string svr, string db, List<Table> tblList)
         {
             string ConnectionString = "DataSource=.\\MSSQLAS";
 
@@ -240,7 +229,7 @@ namespace AWHandmade1._1
                 {
                     Name = "SQL Server Data Source Example",
                     Description = "A data source definition that uses explicit Windows credentials for authentication against SQL Server.",
-                    ConnectionString = "Provider=SQLNCLI11;Data Source=" + svr +";Initial Catalog=" +db+";Integrated Security=SSPI;Persist Security Info=false",
+                    ConnectionString = "Provider=SQLNCLI11;Data Source=" + svr + ";Initial Catalog=" + db + ";Integrated Security=SSPI;Persist Security Info=false",
                     ImpersonationMode = Microsoft.AnalysisServices.Tabular.ImpersonationMode.ImpersonateAccount,
                     Account = @".\duy",
                     Password = "duyduy123",
@@ -251,6 +240,33 @@ namespace AWHandmade1._1
                 // Databases connection and submit the changes 
                 // with full expansion to the server. 
                 // 
+
+                foreach (Table tbl in tblList)
+                {
+                    Microsoft.AnalysisServices.Tabular.Table ttbl = new Microsoft.AnalysisServices.Tabular.Table();
+                    ttbl.Name = tbl.TableName;
+                    var sel = SelectedColumns(svr, db, tbl);
+
+                    foreach (Microsoft.AnalysisServices.Tabular.DataColumn dc in sel)
+                    {
+                        ttbl.Columns.Add(dc);
+                    }
+
+                    ttbl.Partitions.Add(new Partition()
+                    {
+                        Name = "All",
+                        Source = new QueryPartitionSource()
+                        {
+                            DataSource = dbWithDataSource.Model.DataSources["SQL Server Data Source Example"],
+                            Query = "Select * from " + ttbl.Name
+                        }
+
+                    });
+                    dbWithDataSource.Model.Tables.Add(ttbl);
+                }
+
+
+
                 server.Databases.Add(dbWithDataSource);
                 dbWithDataSource.Update(UpdateOptions.ExpandFull);
 
@@ -277,7 +293,7 @@ namespace AWHandmade1._1
         static void Main(string[] args)
         {
 
-            string svr; 
+            string svr;
             string db;
             List<Table> tblList = new List<Table>();
             List<Column> colList = new List<Column>();
@@ -292,14 +308,17 @@ namespace AWHandmade1._1
             //    Console.WriteLine(tblList[i].TableName);
             //}
             //Console.ReadLine();
-            colList = SelectedColumns(svr, db, tblList[0]);
+
+            Console.WriteLine(tblList[0].TableName);
+            //colList = SelectedColumns(svr, db, tblList[0]);
             //for (int i = 0; i < 10; i++)
             //{
             //    Console.WriteLine(colList)
             //}
-            Console.WriteLine(colList[5].ColumnName);
+            // Tùy vào bảng mà chỉ số có thể không chạy được
+            //Console.WriteLine(colList[3].ColumnName);
 
-            //createAnalysisServiceDatabase(svr, db);
+            CreateAnalysisServiceDatabase(svr, db,tblList);
             Console.ReadLine();
         }
     }
